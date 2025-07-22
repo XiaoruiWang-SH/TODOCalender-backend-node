@@ -6,12 +6,13 @@ import express, {
   Response,
 } from "express";
 import { normalizePort } from "./utils";
-import authRouter from "./auth";
-import tasksRouter from "./tasks";
-import userRouter from "./user";
+import authRouter from "./api/auth";
+import tasksRouter from "./api/tasks";
+import userRouter from "./api/user";
 
 const app = express();
 const port = normalizePort(process.env.APP_PORT || "3000");
+const host = process.env.APP_PORT ? "0.0.0.0" : "127.0.0.1";
 
 app.use(json());
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -31,6 +32,6 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 };
 app.use(errorHandler);
 
-app.listen(8080, "0.0.0.0", () => {
-  console.log(`todocalender app listening on port ${port}`);
+app.listen(port, host, () => {
+  console.log(`todocalender app listening on host ${host} port ${port}`);
 });

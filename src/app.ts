@@ -5,25 +5,13 @@ import express, {
   Request,
   Response,
 } from "express";
+import { normalizePort } from "./utils";
+import authRouter from "./auth";
+import tasksRouter from "./tasks";
+import userRouter from "./user";
 
 const app = express();
 const port = normalizePort(process.env.APP_PORT || "3000");
-
-function normalizePort(val: string): number {
-  const port: number = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return port;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return 0;
-}
 
 app.use(json());
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -31,16 +19,15 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("hello world");
-});
+app.use("/api/auth", authRouter);
+app.use("/api/tasks", tasksRouter);
+app.use('api/users', userRouter);
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (err) {
     console.error(`Error occur: ${err}`);
+    res.sendStatus(500);
   }
-  console.error('not found');
-  res.sendStatus(500);
 };
 app.use(errorHandler);
 

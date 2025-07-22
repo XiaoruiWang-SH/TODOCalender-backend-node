@@ -1,4 +1,6 @@
-interface UserItem {
+import { insertUser, queryEmail } from "../data/db";
+
+export interface UserItem {
   id: number;
   name: string;
   email: string;
@@ -33,12 +35,26 @@ export default class User {
     this.provider = provider;
     this.providerId = providerId;
   }
-    
+
   static from(userItem: UserItem): User {
     return new User(userItem);
   }
-    
+
+  async checkIfExist() {
+    try {
+      const rows = await queryEmail(this.email);
+      return rows.length > 0;
+    } catch (error) {
+      return true;
+    }
+  }
+
+  async register() {
+    try {
+      const result = await insertUser(this);
+      return result.insertId;
+    } catch (error) {
+      return -1;
+    }
+  }
 }
-
-
-

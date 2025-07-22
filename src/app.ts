@@ -5,11 +5,11 @@ import express, {
   Request,
   Response,
 } from "express";
-import { normalizePort } from "./utils";
+import { normalizePort, log } from "./utils";
 import authRouter from "./api/auth";
 import tasksRouter from "./api/tasks";
 import userRouter from "./api/user";
-import { initDB } from "./data/db";
+import { createTables, initDB } from "./data/db";
 
 async function startServer() {
   const app = express();
@@ -17,7 +17,7 @@ async function startServer() {
 
   app.use(json());
   app.use((req: Request, res: Response, next: NextFunction) => {
-    console.log("incoming request");
+    log("incoming request");
     next();
   });
 
@@ -27,20 +27,21 @@ async function startServer() {
 
   const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     if (err) {
-      console.error(`Error occur: ${err}`);
+      log(`Error occur: ${err}`);
       res.sendStatus(500);
     }
   };
   app.use(errorHandler);
 
   app.listen(8080, host, () => {
-    console.log(`todocalender app listening on host ${host} port 8080}`);
+    log(`todocalender app listening on host ${host} port 8080}`);
   });
 }
 
 async function bootstrap() {
   try {
     await initDB();
+    await createTables();
     await startServer();
   } catch (err) {
     console.error("❌ Startup failed:", err);

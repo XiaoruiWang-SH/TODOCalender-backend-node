@@ -36,7 +36,6 @@ services:
           memory: 256M # Reserve 256MB RAM
     volumes:
       - /var/lib/mysql/dev_mysql_data:/var/lib/mysql
-      - ./init_dev.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - todo-network
     healthcheck:  # 添加健康检查

@@ -27,3 +27,4 @@ echo "Application started successfully in $ENV environment!"
 
 # 查看日志命令
 # docker compose -p myapp_dev logs -f app
+# docker exec -it myapp_dev-mysql-1 bash 

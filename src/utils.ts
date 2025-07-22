@@ -13,6 +13,12 @@ export function normalizePort(val: string): number {
   return 0;
 }
 
+export function log(message: string) {
+  if (process.env.ENV === 'dev') {
+    console.log(message);
+  }
+}
+
 export function isError(err: unknown): err is Error {
   return err instanceof Error;
 }

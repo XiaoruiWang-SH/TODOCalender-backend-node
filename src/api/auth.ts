@@ -1,6 +1,6 @@
 import { Router } from "express";
 import User from "../model/userModel";
-import { isError, validateBody } from "../utils";
+import { isError, validateBody, log } from "../utils";
 
 const router = Router();
 
@@ -8,7 +8,7 @@ router.get("/", (req, res, next) => {
   res.send("auth");
 });
 
-router.post("/register", (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   try {
     const isValidBody = validateBody(req.body);
   } catch (error) {
@@ -19,14 +19,20 @@ router.post("/register", (req, res, next) => {
     }
     return;
   }
-  
 
   const user = User.from(req.body);
-  console.log(`user: ${JSON.stringify(user)}`);
+  log(`user: ${JSON.stringify(user)}`);
+  const isExist = await user.checkIfExist();
+  if (isExist) {
+    res.status(500).json({ error: "email has already existed" });
+    return;
+  }
+
+  const insertId = await user.register();
+  log(`insert successfly, insertId is ${insertId}`);
+
   res.send("user");
 });
-
-
 
 // router.get("/login", (req, res, next) => {
 //   res.send("user");

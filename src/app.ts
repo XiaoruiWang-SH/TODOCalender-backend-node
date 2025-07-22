@@ -11,7 +11,6 @@ import tasksRouter from "./api/tasks";
 import userRouter from "./api/user";
 
 const app = express();
-const port = normalizePort(process.env.APP_PORT || "3000");
 const host = process.env.APP_PORT ? "0.0.0.0" : "127.0.0.1";
 
 app.use(json());
@@ -32,6 +31,6 @@ const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 };
 app.use(errorHandler);
 
-app.listen(port, host, () => {
-  console.log(`todocalender app listening on host ${host} port ${port}`);
+app.listen(8080, host, () => {
+  console.log(`todocalender app listening on host ${host} port 8080}`);
 });

@@ -19,11 +19,14 @@ router.post("/register", (req, res, next) => {
     }
     return;
   }
+  
 
   const user = User.from(req.body);
   console.log(`user: ${JSON.stringify(user)}`);
   res.send("user");
 });
+
+
 
 // router.get("/login", (req, res, next) => {
 //   res.send("user");

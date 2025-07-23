@@ -26,7 +26,7 @@ export function isError(err: unknown): err is Error {
 const emailRegexp = /^.+@.+\..+$/;
 const passwordRegexp = /^[a-zA-Z0-9]{6,12}$/;
 
-export function validateBody(obj: any) {
+export function validateRegisterBody(obj: any) {
   try {
     const isValidObj = new ObjValidationTool(obj)
       .isEmpty()
@@ -38,6 +38,20 @@ export function validateBody(obj: any) {
       .isValidForRole()
       .isValidForProvider()
       .isValidForProviderId()
+      .done();
+    return isValidObj;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export function validateLoginBody(obj: any) {
+  try {
+    const isValidObj = new ObjValidationTool(obj)
+      .isEmpty()
+      .isValidPlainObj()
+      .isValidForEmail()
+      .isValidForPassword()
       .done();
     return isValidObj;
   } catch (error) {

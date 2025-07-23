@@ -5,33 +5,39 @@ import express, {
   Request,
   Response,
 } from "express";
-import { normalizePort, log } from "./utils";
+import { normalizePort, log, isError } from "./utils";
 import authRouter from "./api/auth";
 import tasksRouter from "./api/tasks";
 import userRouter from "./api/user";
 import { createTables, initDB } from "./data/db";
+import cookieParser from "cookie-parser";
 
 async function startServer() {
   const app = express();
   const host = process.env.APP_PORT ? "0.0.0.0" : "127.0.0.1";
 
   app.use(json());
+  app.use(cookieParser());
   app.use((req: Request, res: Response, next: NextFunction) => {
     log("incoming request");
     next();
   });
 
+
   app.use("/api/auth", authRouter);
   app.use("/api/tasks", tasksRouter);
   app.use("api/users", userRouter);
 
-  const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (err) {
-      log(`Error occur: ${err}`);
-      res.sendStatus(500);
+      if (isError(err)) {
+        log(`Error occur: ${err}`);
+        res.status(500).json({ error: err.message });
+      } else {
+        res.sendStatus(500);
+      }
     }
-  };
-  app.use(errorHandler);
+  });
 
   app.listen(8080, host, () => {
     log(`todocalender app listening on host ${host} port 8080}`);

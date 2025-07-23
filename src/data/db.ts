@@ -8,6 +8,7 @@ const userTable = "users";
 const calendarTable = "calendar";
 
 export async function initDB() {
+  // use root role to create db
   const conn = await mysql.createConnection({
     host: process.env.MYSQL_HOST,
     user: process.env.MYSQL_ROOT_USER,
@@ -29,6 +30,7 @@ export async function initDB() {
 }
 
 export async function createTables() {
+  // use user role to create tables
   const conn = await mysql.createConnection({
     host: process.env.MYSQL_HOST,
     user: process.env.MYSQL_USER,
@@ -80,7 +82,7 @@ const pool = mysql.createPool({
   keepAliveInitialDelay: 0,
 });
 
-type User = RowDataPacket & UserItem;
+type User = RowDataPacket & UserItem; // select, update, delete's return type require RowDataPacket
 
 export async function queryEmail(email: string) {
   try {
@@ -95,6 +97,7 @@ export async function queryEmail(email: string) {
 export async function insertUser(user: UserItem) {
   try {
     const sql = `INSERT INTO ${userTable} (name, email, password, role, provider, providerId) VALUES (?, ?, ?, ?, ?, ?)`;
+    // insert return tpye requres ResultSetHeader
     const [result] = await pool.query<ResultSetHeader>(sql, [
       user.name,
       user.email,

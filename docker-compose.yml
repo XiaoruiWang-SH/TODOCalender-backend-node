@@ -22,8 +22,6 @@ services:
 
   mysql:
     image: mysql:8.0
-    ports:
-      - "${MYSQL_PORT:-3367}:3306"
     env_file:
       - ${ENV_FILE}
     deploy:

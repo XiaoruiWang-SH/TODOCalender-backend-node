@@ -1,8 +1,21 @@
 import { Router } from "express";
 import User from "../model/userModel";
-import { isError, validateBody, log } from "../utils";
+import {
+  isError,
+  validateRegisterBody,
+  validateLoginBody,
+  log,
+} from "../utils";
+import {
+  JsonWebTokenError,
+  JwtPayload,
+  sign,
+  verify,
+  VerifyCallback,
+} from "jsonwebtoken";
 
 const router = Router();
+const secretKey = process.env.JWT_SECRET || "xiaoruiwangJsonwebtokenSecretKey";
 
 router.get("/", (req, res, next) => {
   res.send("auth");
@@ -10,33 +23,62 @@ router.get("/", (req, res, next) => {
 
 router.post("/register", async (req, res, next) => {
   try {
-    const isValidBody = validateBody(req.body);
+    const isValidBody = validateRegisterBody(req.body);
   } catch (error) {
-    if (isError(error)) {
-      res.status(500).json({ error: error.message });
-    } else {
-      res.sendStatus(500);
-    }
-    return;
+    return next(error);
   }
 
   const user = User.from(req.body);
   log(`user: ${JSON.stringify(user)}`);
   const isExist = await user.checkIfExist();
   if (isExist) {
-    res.status(500).json({ error: "email has already existed" });
-    return;
+    return next(new Error("email has already existed"));
   }
 
-  const insertId = await user.register();
-  log(`insert successfly, insertId is ${insertId}`);
+  // generate jwt
+  sign(req.body, secretKey, { expiresIn: 86400 }, async (err, token) => {
+    if (err) {
+      return next(err);
+    }
+    log(`generated token is: ${token}`);
 
-  res.send("user");
+    let insertId = 0;
+    try {
+      insertId = await user.register(); // insert a user to user table
+      log(`insert successfly, insertId is ${insertId}`);
+    } catch (error) {
+      return next(error);
+    }
+    if (insertId < 0) {
+      return next(new Error("Failed to insert a user"));
+    }
+    res.cookie("jwt", token, {
+      expires: new Date(Date.now() + 86400 * 1000),
+      httpOnly: true,
+      secure: true,
+    });
+    res.json({ message: "register successful" });
+  });
 });
 
-// router.get("/login", (req, res, next) => {
-//   res.send("user");
-// });
+router.get("/login", (req, res, next) => {
+  try {
+    const isValidBody = validateRegisterBody(req.body);
+  } catch (error) {
+    return next(error);
+  }
+  const jwt = req.cookies.jwt;
+  if (!jwt) {
+    return next(new Error("The user is not existed, please register first."));
+  }
+  const verifyCallback: VerifyCallback = (err, decoded) => {
+    if (err) {
+      return next(err);
+    }
+    // const obj = JSON.parse(decoded);
+  };
+  verify(jwt, secretKey, verifyCallback);
+});
 
 // router.get("/user", (req, res, next) => {
 //   res.send("user");

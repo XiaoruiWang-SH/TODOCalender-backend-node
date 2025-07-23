@@ -51,6 +51,14 @@ export default class User {
     };
   }
 
+  toInfo() {
+    return {
+      name: this.name,
+      email: this.email,
+      role: this.role,
+    };
+  }
+
   async checkIfExist() {
     try {
       const rows = await queryEmail(this.email);

@@ -59,7 +59,7 @@ router.post("/register", async (req, res, next) => {
       httpOnly: true,
       secure: true,
     });
-    res.json(formatRes(true, "register successful", {}));
+    res.json(formatRes(true, "register successful", user.toInfo()));
   });
 });
 
@@ -85,35 +85,25 @@ router.post("/login", async (req, res, next) => {
     }
     log(`generated token is: ${token}`);
 
-    let insertId = 0;
-    try {
-      insertId = await user.register(); // insert a user to user table
-      log(`insert successfly, insertId is ${insertId}`);
-    } catch (error) {
-      return next(error);
-    }
-    if (insertId < 0) {
-      return next(new Error("Failed to insert a user"));
-    }
     res.cookie("jwt", token, {
       expires: new Date(Date.now() + 86400 * 1000),
       httpOnly: true,
       secure: true,
     });
-    res.json(formatRes(true, "login successful", {}));
+    res.json(formatRes(true, "login successful", user.toInfo()));
   });
 
-//   const jwt = req.cookies.jwt;
-//   if (!jwt) {
-//     return next(new Error("The user is not existed, please register first."));
-//   }
-//   const verifyCallback: VerifyCallback = (err, decoded) => {
-//     if (err) {
-//       return next(err);
-//     }
-//     // const obj = JSON.parse(decoded);
-//   };
-//   verify(jwt, secretKey, verifyCallback);
+  //   const jwt = req.cookies.jwt;
+  //   if (!jwt) {
+  //     return next(new Error("The user is not existed, please register first."));
+  //   }
+  //   const verifyCallback: VerifyCallback = (err, decoded) => {
+  //     if (err) {
+  //       return next(err);
+  //     }
+  //     // const obj = JSON.parse(decoded);
+  //   };
+  //   verify(jwt, secretKey, verifyCallback);
 });
 
 // router.get("/user", (req, res, next) => {

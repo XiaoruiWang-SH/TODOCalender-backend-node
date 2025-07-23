@@ -24,7 +24,7 @@ export function isError(err: unknown): err is Error {
 }
 
 const emailRegexp = /^.+@.+\..+$/;
-const passwordRegexp = /^[a-zA-Z0-9]{6,12}$/;
+const passwordRegexp = /^[a-zA-Z0-9]{6,20}$/;
 
 export function validateRegisterBody(obj: any) {
   try {
@@ -34,7 +34,7 @@ export function validateRegisterBody(obj: any) {
       .isValidForEmail()
       .isValidForName()
       .isValidForPassword()
-      .isValidForReConfirmPassword()
+      // .isValidForReConfirmPassword()
       .done();
     return isValidObj;
   } catch (error) {
@@ -109,7 +109,7 @@ class ObjValidationTool {
     }
     if (!passwordRegexp.test(this.obj.password)) {
       throw new Error(
-        "password need to meet the rule: 6 to 12 numbers or letters"
+        "password need to meet the rule: 6 to 20 numbers or letters"
       );
     }
     return this;
@@ -120,7 +120,7 @@ class ObjValidationTool {
       !("reConfirmPassword" in this.obj) ||
       typeof this.obj.reConfirmPassword !== "string"
     ) {
-      throw new Error("password is not sring type");
+      throw new Error("reConfirmPassword is not sring type");
     }
     if (this.obj.password !== this.obj.reConfirmPassword) {
       throw new Error("reConfirmPassword is not equal to password");

@@ -19,8 +19,9 @@ import {
 const router = Router();
 const secretKey = process.env.JWT_SECRET || "xiaoruiwangJsonwebtokenSecretKey";
 
-router.get("/", (req, res, next) => {
-  res.send("auth");
+router.use((req, res, next) => {
+  console.log("进入了auth路由"); 
+  next();
 });
 
 router.post("/register", async (req, res, next) => {

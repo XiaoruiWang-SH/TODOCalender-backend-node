@@ -5,7 +5,13 @@ import express, {
   Request,
   Response,
 } from "express";
-import { normalizePort, log, isError } from "./utils";
+import {
+  normalizePort,
+  log,
+  isError,
+  type MyResponse,
+  formatRes,
+} from "./utils";
 import authRouter from "./api/auth";
 import tasksRouter from "./api/tasks";
 import userRouter from "./api/user";
@@ -23,7 +29,6 @@ async function startServer() {
     next();
   });
 
-
   app.use("/api/auth", authRouter);
   app.use("/api/tasks", tasksRouter);
   app.use("api/users", userRouter);
@@ -32,7 +37,7 @@ async function startServer() {
     if (err) {
       if (isError(err)) {
         log(`Error occur: ${err}`);
-        res.status(500).json({ error: err.message });
+        res.status(500).json(formatRes(false, err.message, {}));
       } else {
         res.sendStatus(500);
       }

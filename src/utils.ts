@@ -14,7 +14,7 @@ export function normalizePort(val: string): number {
 }
 
 export function log(message: string) {
-  if (process.env.ENV === 'dev') {
+  if (process.env.ENV === "dev") {
     console.log(message);
   }
 }
@@ -31,13 +31,10 @@ export function validateRegisterBody(obj: any) {
     const isValidObj = new ObjValidationTool(obj)
       .isEmpty()
       .isValidPlainObj()
-      .isValidForID()
       .isValidForEmail()
       .isValidForName()
       .isValidForPassword()
-      .isValidForRole()
-      .isValidForProvider()
-      .isValidForProviderId()
+      .isValidForReConfirmPassword()
       .done();
     return isValidObj;
   } catch (error) {
@@ -111,7 +108,22 @@ class ObjValidationTool {
       throw new Error("password is not sring type");
     }
     if (!passwordRegexp.test(this.obj.password)) {
-      throw new Error("password need to meet the rule: 6 to 12 numbers or letters");
+      throw new Error(
+        "password need to meet the rule: 6 to 12 numbers or letters"
+      );
+    }
+    return this;
+  }
+
+  isValidForReConfirmPassword() {
+    if (
+      !("reConfirmPassword" in this.obj) ||
+      typeof this.obj.reConfirmPassword !== "string"
+    ) {
+      throw new Error("password is not sring type");
+    }
+    if (this.obj.password !== this.obj.reConfirmPassword) {
+      throw new Error("reConfirmPassword is not equal to password");
     }
     return this;
   }
@@ -143,4 +155,22 @@ class ObjValidationTool {
   done() {
     return true;
   }
+}
+
+export interface MyResponse {
+  result: boolean;
+  message: string;
+  data: { [key: string]: any };
+}
+
+export function formatRes(
+  successful: boolean,
+  message: string | null,
+  content: { [key: string]: string | number } | null
+): MyResponse {
+  return {
+    result: successful,
+    message: message || "",
+    data: content || {},
+  };
 }

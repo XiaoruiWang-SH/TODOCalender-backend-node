@@ -5,6 +5,8 @@ import {
   validateRegisterBody,
   validateLoginBody,
   log,
+  type MyResponse,
+  formatRes,
 } from "../utils";
 import {
   JsonWebTokenError,
@@ -34,9 +36,9 @@ router.post("/register", async (req, res, next) => {
   if (isExist) {
     return next(new Error("email has already existed"));
   }
-
+  const plain = user.toPlain();
   // generate jwt
-  sign(req.body, secretKey, { expiresIn: 86400 }, async (err, token) => {
+  sign(plain, secretKey, { expiresIn: 86400 }, async (err, token) => {
     if (err) {
       return next(err);
     }
@@ -57,27 +59,61 @@ router.post("/register", async (req, res, next) => {
       httpOnly: true,
       secure: true,
     });
-    res.json({ message: "register successful" });
+    res.json(formatRes(true, "register successful", {}));
   });
 });
 
-router.get("/login", (req, res, next) => {
+router.post("/login", async (req, res, next) => {
   try {
-    const isValidBody = validateRegisterBody(req.body);
+    const isValidBody = validateLoginBody(req.body);
   } catch (error) {
     return next(error);
   }
-  const jwt = req.cookies.jwt;
-  if (!jwt) {
+  const users = await User.queryUser(req.body.email);
+  if (users.length === 0) {
     return next(new Error("The user is not existed, please register first."));
   }
-  const verifyCallback: VerifyCallback = (err, decoded) => {
+  if (users.length !== 1) {
+    return next(new Error("Internal error."));
+  }
+  const user = User.from(users[0]);
+  const plain = user.toPlain();
+  // generate jwt
+  sign(plain, secretKey, { expiresIn: 86400 }, async (err, token) => {
     if (err) {
       return next(err);
     }
-    // const obj = JSON.parse(decoded);
-  };
-  verify(jwt, secretKey, verifyCallback);
+    log(`generated token is: ${token}`);
+
+    let insertId = 0;
+    try {
+      insertId = await user.register(); // insert a user to user table
+      log(`insert successfly, insertId is ${insertId}`);
+    } catch (error) {
+      return next(error);
+    }
+    if (insertId < 0) {
+      return next(new Error("Failed to insert a user"));
+    }
+    res.cookie("jwt", token, {
+      expires: new Date(Date.now() + 86400 * 1000),
+      httpOnly: true,
+      secure: true,
+    });
+    res.json(formatRes(true, "login successful", {}));
+  });
+
+//   const jwt = req.cookies.jwt;
+//   if (!jwt) {
+//     return next(new Error("The user is not existed, please register first."));
+//   }
+//   const verifyCallback: VerifyCallback = (err, decoded) => {
+//     if (err) {
+//       return next(err);
+//     }
+//     // const obj = JSON.parse(decoded);
+//   };
+//   verify(jwt, secretKey, verifyCallback);
 });
 
 // router.get("/user", (req, res, next) => {

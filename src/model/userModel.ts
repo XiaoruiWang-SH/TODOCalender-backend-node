@@ -6,8 +6,8 @@ export interface UserItem {
   email: string;
   password: string;
   role: string;
-  provider: string;
-  providerId: string;
+  provider: string | null;
+  providerId: string | null;
 }
 
 export default class User {
@@ -16,14 +16,14 @@ export default class User {
   email: string;
   password: string;
   role: string;
-  provider: string;
-  providerId: string;
+  provider: string | null;
+  providerId: string | null;
   constructor({
-    id,
+    id = 0,
     name,
     email,
     password,
-    role,
+    role = "user",
     provider,
     providerId,
   }: UserItem) {
@@ -40,12 +40,32 @@ export default class User {
     return new User(userItem);
   }
 
+  toPlain() {
+    return {
+      name: this.name,
+      email: this.email,
+      password: this.password,
+      role: this.role,
+      provider: this.provider,
+      providerId: this.providerId,
+    };
+  }
+
   async checkIfExist() {
     try {
       const rows = await queryEmail(this.email);
       return rows.length > 0;
     } catch (error) {
       return true;
+    }
+  }
+
+  static async queryUser(email: string): Promise<UserItem[]> {
+    try {
+      const rows = await queryEmail(email);
+      return rows;
+    } catch (error) {
+      return [];
     }
   }
 

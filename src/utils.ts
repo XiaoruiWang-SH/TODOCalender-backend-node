@@ -166,7 +166,7 @@ export interface MyResponse {
 export function formatRes(
   successful: boolean,
   message: string | null,
-  content: { [key: string]: string | number } | null
+  content: { [key: string]: any } | null
 ): MyResponse {
   return {
     result: successful,

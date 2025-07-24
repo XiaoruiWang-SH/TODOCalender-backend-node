@@ -141,6 +141,14 @@ router.get("/user", (req, res, next) => {
   );
 });
 
-router.post("logout", (req, res, next) => {});
+router.post("/logout", (req, res, next) => {
+  res.cookie("jwt", "", {
+    expires: new Date(Date.now()),
+    httpOnly: true,
+    secure: true,
+  });
+  req.app.set("userInfo", {});
+  res.json(formatRes(true, "logout successful", {}));
+});
 
 export default router;

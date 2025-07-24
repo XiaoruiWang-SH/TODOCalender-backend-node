@@ -41,7 +41,7 @@ async function startServer() {
   app.use(cookieParser());
 
   app.use((req: Request, res: Response, next: NextFunction) => {
-    log("incoming request");
+    log("incoming request: " + req.path);
     // filter urls
     if (shouldFilter(req.path)) {
       next();

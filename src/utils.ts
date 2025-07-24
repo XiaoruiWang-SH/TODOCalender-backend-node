@@ -1,3 +1,4 @@
+
 export function normalizePort(val: string): number {
   const port: number = parseInt(val, 10);
 
@@ -174,3 +175,12 @@ export function formatRes(
     data: content || {},
   };
 }
+
+export const shouldFilter = (path: string): boolean => {
+  const registerRegExp = /^\/api\/auth\/register$/;
+  const loginRegExp = /^\/api\/auth\/login$/;
+  const oauthRegExp = /^\/api\/oauth2\/.*$/;
+  return [registerRegExp, loginRegExp, oauthRegExp].some((regExp) =>
+    regExp.test(path)
+  );
+};

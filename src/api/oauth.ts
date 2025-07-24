@@ -54,7 +54,6 @@ router.get("/callback/google", async (req, res, next) => {
   const { access_token, expires_in, id_token, scope, token_type } =
     tokenRes.data;
 
-  // 🔐 获取用户信息
   const userInfoRes = await axios.get(
     "https://www.googleapis.com/oauth2/v3/userinfo",
     {
@@ -64,7 +63,7 @@ router.get("/callback/google", async (req, res, next) => {
     }
   );
 
-  const { email, name, picture } = userInfoRes.data; // 包含 email, name, picture 等
+  const { email, name, picture } = userInfoRes.data;
 
   const userinfo = {
     name: name,
@@ -101,7 +100,7 @@ router.get("/callback/google", async (req, res, next) => {
       httpOnly: true,
       secure: true,
     });
-    // res.json(formatRes(true, "register successful", user.toInfo()));
+    // redict to frontend page
     const frontend_redirect_url =
       frontendUrl +
       "?auth=success" +

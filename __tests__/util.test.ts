@@ -1,4 +1,4 @@
-import { formatRes } from "../src/utils";
+import { formatRes, shouldFilter } from "../src/utils";
 
 describe("formatRes", () => {
   it("Format empty data", () => {
@@ -21,3 +21,28 @@ describe("formatRes", () => {
   });
 });
 
+describe("shouldFilter", () => {
+  it("validate register url", () => {
+    const path = "/api/auth/register";
+    expect(shouldFilter(path)).toEqual(true);
+  });
+
+  it("validate login url", () => {
+    const path = "/api/auth/login";
+    expect(shouldFilter(path)).toEqual(true);
+  });
+
+  it("validate oauth url", () => {
+    const path = "/api/oauth2/google";
+    expect(shouldFilter(path)).toEqual(true);
+  });
+
+  it("validate logout url", () => {
+    const path = "/api/auth/logout";
+    expect(shouldFilter(path)).toEqual(false);
+  });
+  it("validate user url", () => {
+    const path = "/api/user/aaa";
+    expect(shouldFilter(path)).toEqual(false);
+  });
+});

@@ -11,11 +11,12 @@ import {
   isError,
   type MyResponse,
   formatRes,
+  shouldFilter,
 } from "./utils";
-import authRouter from "./api/auth";
+import authRouter, { validateToken } from "./api/auth";
 import tasksRouter from "./api/tasks";
 import userRouter from "./api/user";
-import oauthRouter from "./api/oauth"
+import oauthRouter from "./api/oauth";
 import { createTables, initDB } from "./data/db";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -38,9 +39,16 @@ async function startServer() {
   );
   app.use(json());
   app.use(cookieParser());
+
   app.use((req: Request, res: Response, next: NextFunction) => {
     log("incoming request");
-    next();
+    // filter urls
+    if (shouldFilter(req.path)) {
+      next();
+    } else {
+      // validate token
+      validateToken(req, res, next);
+    }
   });
 
   app.use("/api/oauth2", oauthRouter);

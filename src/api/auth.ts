@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { NextFunction, RequestHandler, Response, Router } from "express";
 import User from "../model/userModel";
 import {
   isError,
@@ -8,17 +8,39 @@ import {
   type MyResponse,
   formatRes,
 } from "../utils";
-import {
-  sign,
-  verify,
-  VerifyCallback,
-} from "jsonwebtoken";
+import { JwtPayload, sign, verify, VerifyCallback } from "jsonwebtoken";
 
 const router = Router();
-export const secretKey = process.env.JWT_SECRET || "xiaoruiwangJsonwebtokenSecretKey";
+export const secretKey =
+  process.env.JWT_SECRET || "xiaoruiwangJsonwebtokenSecretKey";
+
+export const validateToken: RequestHandler = (req, res, next) => {
+  const jwt = req.cookies.jwt;
+  if (!jwt) {
+    return next(new Error("The user is not existed, please register first."));
+  }
+
+  const isJwtPayload = (obj: any): obj is JwtPayload => {
+    return typeof obj === "object" && obj !== null && "exp" in obj;
+  };
+
+  const verifyCallback: VerifyCallback = (err, decoded) => {
+    if (err) {
+      return next(err);
+    }
+    if (isJwtPayload(decoded)) {
+      const { name, email, role } = decoded;
+      req.app.set("userInfo", { name, email, role });
+      next();
+    } else {
+      return next(new Error("Token is expired, please login"));
+    }
+  };
+  verify(jwt, secretKey, verifyCallback);
+};
 
 router.use((req, res, next) => {
-  console.log("进入了auth路由"); 
+  console.log("进入了auth路由");
   next();
 });
 
@@ -91,22 +113,34 @@ router.post("/login", async (req, res, next) => {
     });
     res.json(formatRes(true, "login successful", user.toInfo()));
   });
-
-  //   const jwt = req.cookies.jwt;
-  //   if (!jwt) {
-  //     return next(new Error("The user is not existed, please register first."));
-  //   }
-  //   const verifyCallback: VerifyCallback = (err, decoded) => {
-  //     if (err) {
-  //       return next(err);
-  //     }
-  //     // const obj = JSON.parse(decoded);
-  //   };
-  //   verify(jwt, secretKey, verifyCallback);
 });
 
-// router.get("/user", (req, res, next) => {
-//   res.send("user");
-// });
+router.get("/user", (req, res, next) => {
+  const userInfo = req.app.get("userInfo");
+  const validateUserinfo = (userinfo: any) => {
+    if (
+      typeof userinfo === "object" &&
+      userinfo !== null &&
+      "name" in userinfo &&
+      "email" in userinfo &&
+      "role" in userinfo
+    ) {
+      return true;
+    }
+    return false;
+  };
+  if (!validateUserinfo(userInfo)) {
+    return next(new Error("Please login"));
+  }
+  res.json(
+    formatRes(true, "login successful", {
+      name: userInfo.name,
+      email: userInfo.email,
+      role: userInfo.role,
+    })
+  );
+});
+
+router.post("logout", (req, res, next) => {});
 
 export default router;

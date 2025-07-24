@@ -9,15 +9,13 @@ import {
   formatRes,
 } from "../utils";
 import {
-  JsonWebTokenError,
-  JwtPayload,
   sign,
   verify,
   VerifyCallback,
 } from "jsonwebtoken";
 
 const router = Router();
-const secretKey = process.env.JWT_SECRET || "xiaoruiwangJsonwebtokenSecretKey";
+export const secretKey = process.env.JWT_SECRET || "xiaoruiwangJsonwebtokenSecretKey";
 
 router.use((req, res, next) => {
   console.log("进入了auth路由"); 

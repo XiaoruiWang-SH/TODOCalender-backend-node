@@ -15,6 +15,7 @@ import {
 import authRouter from "./api/auth";
 import tasksRouter from "./api/tasks";
 import userRouter from "./api/user";
+import oauthRouter from "./api/oauth"
 import { createTables, initDB } from "./data/db";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -42,6 +43,7 @@ async function startServer() {
     next();
   });
 
+  app.use("/api/oauth2", oauthRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/tasks", tasksRouter);
   app.use("/api/users", userRouter);

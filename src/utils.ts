@@ -1,4 +1,3 @@
-
 export function normalizePort(val: string): number {
   const port: number = parseInt(val, 10);
 
@@ -167,7 +166,7 @@ export interface MyResponse {
 export function formatRes(
   successful: boolean,
   message: string | null,
-  content: { [key: string]: any } | null
+  content: any
 ): MyResponse {
   return {
     result: successful,

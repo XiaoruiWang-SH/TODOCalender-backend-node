@@ -1,7 +1,7 @@
 import mysql, { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { log } from "../utils";
 import { type UserItem } from "../model/userModel";
-
+import { type TaskItem } from "../model/taskModel";
 export const dbParam = process.env.MYSQL_DATABASE || "todocalendar_dev";
 export const hostParam = process.env.MYSQL_HOST || "localhost";
 export const userTableParam = "users";

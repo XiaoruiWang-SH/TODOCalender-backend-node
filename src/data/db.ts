@@ -2,39 +2,71 @@ import mysql, { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { log } from "../utils";
 import { type UserItem } from "../model/userModel";
 
-const dbName =
-  process.env.ENV === "dev" ? "todocalendar_dev" : "todocalendar_prod";
-const userTable = "users";
-const calendarTable = "calendar";
-
-export async function initDB() {
-  // use root role to create db
-  const conn = await mysql.createConnection({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_ROOT_USER,
-    password: process.env.MYSQL_ROOT_PASSWORD,
-  });
-
-  await conn.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
-  log("✅ Database created");
-
-  await conn.query(`
-    GRANT ALL PRIVILEGES ON ${dbName}.* TO 'xiaoruiwang'@'%'
-  `);
-  log("✅ Privileges granted");
-
-  await conn.query(`FLUSH PRIVILEGES`);
-  log("✅ Privileges flushed");
-
-  await conn.end();
+export interface dbInitializationProps {
+  dbName: string;
+  host: string;
+  user: string;
+  grantedUser: string;
+  password: string;
 }
 
-export async function createTables() {
-  // use user role to create tables
+export async function initDB({
+  dbName,
+  host,
+  user,
+  grantedUser,
+  password,
+}: dbInitializationProps) {
+  // use root role to create db
   const conn = await mysql.createConnection({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
+    host: host,
+    user: user,
+    password: password,
+  });
+  try {
+    const escapedDBName = mysql.escapeId(dbName);
+    await conn.query(`CREATE DATABASE IF NOT EXISTS ${escapedDBName}`);
+    log("✅ Database created");
+    const escapedUserString = mysql.escape(grantedUser + "@%");
+    // await conn.query(
+    //   `
+    // GRANT ALL PRIVILEGES ON ${escapedDBName}.* TO ${escapedUserString}`
+    // );
+    await conn.query(`
+    GRANT ALL PRIVILEGES ON ${dbName}.* TO '${grantedUser}'@'%'
+  `);
+    log("✅ Privileges granted");
+
+    await conn.query(`FLUSH PRIVILEGES`);
+    log("✅ Privileges flushed");
+  } catch (error) {
+    throw error;
+  } finally {
+    await conn.end();
+  }
+}
+
+export interface tableInitializationProps {
+  userTable: string;
+  calendarTable: string;
+  dbName: string;
+  host: string;
+  user: string;
+  password: string;
+}
+
+export async function createTables({
+  userTable,
+  calendarTable,
+  dbName,
+  host,
+  user,
+  password,
+}: tableInitializationProps) {
+  const conn = await mysql.createConnection({
+    host: host,
+    user: user,
+    password: password,
     database: dbName,
   });
   await conn.query(`
@@ -68,37 +100,73 @@ export async function createTables() {
   await conn.end();
 }
 
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: dbName,
-  waitForConnections: true,
-  connectionLimit: 10,
-  maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
-  idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
-});
+export async function deleteTable({
+  host,
+  user,
+  password,
+  dbName,
+  tableName,
+}: {
+  host: string;
+  user: string;
+  password: string;
+  dbName: string;
+  tableName: string;
+}) {
+  const conn = await mysql.createConnection({
+    host,
+    user,
+    password,
+    database: dbName,
+  });
+
+  try {
+    const escapedTable = mysql.escapeId(tableName); // 防止SQL注入
+    await conn.query(`DROP TABLE IF EXISTS ${escapedTable}`);
+    log(`✅ Table '${tableName}' deleted (if existed).`);
+  } catch (err) {
+    throw err;
+  } finally {
+    await conn.end();
+  }
+}
+
+const pool = (dbName: string) =>
+  mysql.createPool({
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    database: dbName,
+    waitForConnections: true,
+    connectionLimit: 10,
+    maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
+    idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
+  });
 
 type User = RowDataPacket & UserItem; // select, update, delete's return type require RowDataPacket
 
-export async function queryEmail(email: string) {
+export async function queryEmail(email: string, db: string, userTable: string) {
   try {
     const sql = `SELECT * FROM ${userTable} WHERE email = ?`;
-    const [rows] = await pool.query<User[]>(sql, [email]);
+    const [rows] = await pool(db).query<User[]>(sql, [email]);
     return rows;
   } catch (err) {
     throw err;
   }
 }
 
-export async function insertUser(user: UserItem) {
+export async function insertUser(
+  user: UserItem,
+  db: string,
+  userTable: string
+) {
   try {
     const sql = `INSERT INTO ${userTable} (name, email, password, role, provider, providerId) VALUES (?, ?, ?, ?, ?, ?)`;
     // insert return tpye requres ResultSetHeader
-    const [result] = await pool.query<ResultSetHeader>(sql, [
+    const [result] = await pool(db).query<ResultSetHeader>(sql, [
       user.name,
       user.email,
       user.password,
@@ -111,3 +179,20 @@ export async function insertUser(user: UserItem) {
     throw err;
   }
 }
+
+// type Task = RowDataPacket & TaskItem;
+
+// export async function queryTaskByData(
+//   date: string,
+//   useName: string,
+//   db: string,
+//   calendarTable: string
+// ): Promise<Task[]> {
+//   try {
+//     const sql = `SELECT * FROM ${calendarTable} WHERE createDate = ? AND userName = ? ORDER BY checked ASC, important DESC, updateTime DESC`;
+//     const [result] = await pool(db).query<Task[]>(sql, [date, useName]);
+//     return result;
+//   } catch (error) {
+//     throw error;
+//   }
+// }

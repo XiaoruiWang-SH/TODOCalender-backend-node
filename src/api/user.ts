@@ -2,8 +2,12 @@ import { Router } from "express";
 
 const router = Router();
 
-router.get("/", (req, res, next) => {
-  res.send("user");
+router.use((req, res, next) => {
+  console.log("进入user路由");
+  next();
 });
 
 export default router;
+
+
+

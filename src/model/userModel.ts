@@ -1,5 +1,4 @@
 import { insertUser, queryEmail } from "../data/db";
-import { dbName, userTable, calendarTable } from "../app";
 
 export interface UserItem {
   id: number;
@@ -62,7 +61,7 @@ export default class User {
 
   async checkIfExist() {
     try {
-      const rows = await queryEmail(this.email, dbName, userTable);
+      const rows = await queryEmail(this.email);
       return rows.length > 0;
     } catch (error) {
       return true;
@@ -71,7 +70,7 @@ export default class User {
 
   static async queryUser(email: string): Promise<UserItem[]> {
     try {
-      const rows = await queryEmail(email, dbName, userTable);
+      const rows = await queryEmail(email);
       return rows;
     } catch (error) {
       return [];
@@ -80,7 +79,7 @@ export default class User {
 
   async register() {
     try {
-      const result = await insertUser(this, dbName, userTable);
+      const result = await insertUser(this);
       return result.insertId;
     } catch (error) {
       return -1;

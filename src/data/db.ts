@@ -2,6 +2,16 @@ import mysql, { ResultSetHeader, RowDataPacket } from "mysql2/promise";
 import { log } from "../utils";
 import { type UserItem } from "../model/userModel";
 
+export const dbParam = process.env.MYSQL_DATABASE || "todocalendar_dev";
+export const hostParam = process.env.MYSQL_HOST || "localhost";
+export const userTableParam = "users";
+export const calendarTableParam = "calendar";
+export const dbInitializationUser = process.env.MYSQL_ROOT_USER || "root";
+export const dbInitializationPassword =
+  process.env.MYSQL_ROOT_PASSWORD || "root";
+export const tableInitializationUser = process.env.MYSQL_USER || "user";
+export const tableInitializationPassword = process.env.MYSQL_PASSWORD || "user";
+
 export interface dbInitializationProps {
   dbName: string;
   host: string;
@@ -10,13 +20,15 @@ export interface dbInitializationProps {
   password: string;
 }
 
-export async function initDB({
-  dbName,
-  host,
-  user,
-  grantedUser,
-  password,
-}: dbInitializationProps) {
+export async function initDB(
+  { dbName, host, user, password, grantedUser }: dbInitializationProps = {
+    dbName: dbParam,
+    host: hostParam,
+    user: dbInitializationUser,
+    password: dbInitializationPassword,
+    grantedUser: tableInitializationUser,
+  }
+) {
   // use root role to create db
   const conn = await mysql.createConnection({
     host: host,
@@ -55,14 +67,23 @@ export interface tableInitializationProps {
   password: string;
 }
 
-export async function createTables({
-  userTable,
-  calendarTable,
-  dbName,
-  host,
-  user,
-  password,
-}: tableInitializationProps) {
+export async function createTables(
+  {
+    userTable,
+    calendarTable,
+    dbName,
+    host,
+    user = tableInitializationUser,
+    password = tableInitializationPassword,
+  }: tableInitializationProps = {
+    userTable: userTableParam,
+    calendarTable: calendarTableParam,
+    dbName: dbParam,
+    host: hostParam,
+    user: tableInitializationUser,
+    password: tableInitializationPassword,
+  }
+) {
   const conn = await mysql.createConnection({
     host: host,
     user: user,
@@ -131,27 +152,30 @@ export async function deleteTable({
   }
 }
 
-const pool = (dbName: string) =>
-  mysql.createPool({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    password: process.env.MYSQL_PASSWORD,
-    database: dbName,
-    waitForConnections: true,
-    connectionLimit: 10,
-    maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
-    idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
-    queueLimit: 0,
-    enableKeepAlive: true,
-    keepAliveInitialDelay: 0,
-  });
+const sharePool = mysql.createPool({
+  host: hostParam,
+  user: tableInitializationUser,
+  password: tableInitializationPassword,
+  database: dbParam,
+  waitForConnections: true,
+  connectionLimit: 10,
+  maxIdle: 10, // max idle connections, the default value is the same as `connectionLimit`
+  idleTimeout: 60000, // idle connections timeout, in milliseconds, the default value 60000
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+});
 
 type User = RowDataPacket & UserItem; // select, update, delete's return type require RowDataPacket
 
-export async function queryEmail(email: string, db: string, userTable: string) {
+export async function queryEmail(
+  email: string,
+  pool = sharePool,
+  userTable = userTableParam
+) {
   try {
     const sql = `SELECT * FROM ${userTable} WHERE email = ?`;
-    const [rows] = await pool(db).query<User[]>(sql, [email]);
+    const [rows] = await pool.query<User[]>(sql, [email]);
     return rows;
   } catch (err) {
     throw err;
@@ -160,13 +184,13 @@ export async function queryEmail(email: string, db: string, userTable: string) {
 
 export async function insertUser(
   user: UserItem,
-  db: string,
-  userTable: string
+  pool = sharePool,
+  userTable = userTableParam
 ) {
   try {
     const sql = `INSERT INTO ${userTable} (name, email, password, role, provider, providerId) VALUES (?, ?, ?, ?, ?, ?)`;
     // insert return tpye requres ResultSetHeader
-    const [result] = await pool(db).query<ResultSetHeader>(sql, [
+    const [result] = await pool.query<ResultSetHeader>(sql, [
       user.name,
       user.email,
       user.password,

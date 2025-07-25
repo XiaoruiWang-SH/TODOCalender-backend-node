@@ -77,35 +77,10 @@ async function startServer() {
   });
 }
 
-export const dbName = process.env.MYSQL_DATABASE || "todocalendar_dev";
-export const userTable = "users";
-export const calendarTable = "calendar";
-export const host = process.env.MYSQL_HOST || "localhost";
-export const dbInitializationUser = process.env.MYSQL_ROOT_USER || "root";
-export const dbInitializationPassword =
-  process.env.MYSQL_ROOT_PASSWORD || "root";
-export const tableInitializationUser = process.env.MYSQL_USER || "user";
-export const tableInitializationPassword = process.env.MYSQL_PASSWORD || "user";
-
 async function bootstrap() {
   try {
-    const dbInitializationParams = {
-      dbName,
-      host,
-      user: dbInitializationUser,
-      password: dbInitializationPassword,
-      grantedUser: tableInitializationUser,
-    };
-    const tableInitializationParams = {
-      userTable,
-      calendarTable,
-      dbName,
-      host,
-      user: tableInitializationUser,
-      password: tableInitializationPassword,
-    };
-    await initDB(dbInitializationParams);
-    await createTables(tableInitializationParams);
+    await initDB();
+    await createTables();
     await startServer();
   } catch (err) {
     console.error("❌ Startup failed:", err);

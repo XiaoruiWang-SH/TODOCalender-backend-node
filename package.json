@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "test": "jest --coverage",
+    "test": "jest --detectOpenHandles",
     "dev": "NODE_OPTIONS='--inspect=0.0.0.0:5005' ts-node src/app.ts"
   },
   "keywords": [],

@@ -1,4 +1,5 @@
 interface TaskItem {
+  id: number;
   title: string;
   details: string | null;
   checked: boolean;
@@ -11,6 +12,7 @@ interface TaskItem {
 }
 
 class Task {
+  id: number;
   title: string;
   details: string | null;
   checked: boolean;
@@ -22,6 +24,7 @@ class Task {
   userName: string;
 
   constructor({
+    id = 0,
     title,
     details = null,
     checked,
@@ -32,6 +35,7 @@ class Task {
     createDate,
     userName,
   }: TaskItem) {
+    this.id = id;
     this.title = title;
     this.details = details;
     this.checked = checked;

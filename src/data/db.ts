@@ -170,8 +170,8 @@ type User = RowDataPacket & UserItem; // select, update, delete's return type re
 
 export async function queryEmail(
   email: string,
-  pool = sharePool,
-  userTable = userTableParam
+  userTable = userTableParam,
+  pool = sharePool
 ) {
   try {
     const sql = `SELECT * FROM ${userTable} WHERE email = ?`;
@@ -184,8 +184,8 @@ export async function queryEmail(
 
 export async function insertUser(
   user: UserItem,
-  pool = sharePool,
-  userTable = userTableParam
+  userTable = userTableParam,
+  pool = sharePool
 ) {
   try {
     const sql = `INSERT INTO ${userTable} (name, email, password, role, provider, providerId) VALUES (?, ?, ?, ?, ?, ?)`;
@@ -204,19 +204,64 @@ export async function insertUser(
   }
 }
 
-// type Task = RowDataPacket & TaskItem;
+export type Task = RowDataPacket & TaskItem;
 
-// export async function queryTaskByData(
-//   date: string,
-//   useName: string,
-//   db: string,
-//   calendarTable: string
-// ): Promise<Task[]> {
-//   try {
-//     const sql = `SELECT * FROM ${calendarTable} WHERE createDate = ? AND userName = ? ORDER BY checked ASC, important DESC, updateTime DESC`;
-//     const [result] = await pool(db).query<Task[]>(sql, [date, useName]);
-//     return result;
-//   } catch (error) {
-//     throw error;
-//   }
-// }
+export async function queryTaskByData(
+  date: string,
+  userName: string,
+  calendarTable = calendarTableParam,
+  pool = sharePool
+): Promise<Task[]> {
+  try {
+    const sql = `SELECT * FROM ${calendarTable} WHERE createDate = ? AND userName = ? ORDER BY checked ASC, important DESC, updateTime DESC`;
+    const [result] = await pool.query<Task[]>(sql, [date, userName]);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function insertTask(
+  task: TaskItem,
+  calendarTable = calendarTableParam,
+  pool = sharePool
+) {
+  try {
+    const sql = `INSERT INTO ${calendarTable} (title, details, checked, important, createTime, expireTime, updateTime, createDate, userName) VALUES (?,?,?,?,?,?,?,?,?)`;
+    const [result] = await pool.query<ResultSetHeader>(sql, [
+      task.title,
+      task.details,
+      task.checked,
+      task.important,
+      task.createTime,
+      task.expireTime,
+      task.updateTime,
+      task.createDate,
+      task.userName,
+    ]);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+export async function updateTask(
+  task: TaskItem,
+  calendarTable = calendarTableParam,
+  pool = sharePool
+) {
+  try {
+    const sql = `UPDATE ${calendarTable} SET title = ?, details = ?, updateTime = ?, expireTime = ?, checked = ?, important = ? WHERE id = ?`;
+    const [result] = await pool.query<ResultSetHeader>(sql, [
+      task.title,
+      task.details,
+      task.updateTime,
+      task.expireTime,
+      task.checked,
+      task.important,
+      task.id,
+    ]);
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}

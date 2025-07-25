@@ -3,10 +3,11 @@ import {
   type tableInitializationProps,
   deleteTable,
   insertUser,
-  queryTaskByData,
+  queryTaskByDate,
   insertTask,
   type Task,
   updateTask,
+  deleteTask,
 } from "../src/data/db";
 import mysql from "mysql2/promise";
 import { UserItem } from "../src/model/userModel";
@@ -162,7 +163,7 @@ describe("test insert and query tasks", () => {
   });
   test("query the task", async () => {
     const queryDate = moment(createTime).format("YYYY-MM-DD");
-    const tasks = await queryTaskByData(
+    const tasks = await queryTaskByDate(
       queryDate,
       userName,
       calendarTable,
@@ -181,7 +182,7 @@ describe("test insert and query tasks", () => {
   });
   test("query the task again", async () => {
     const queryDate = moment(createTime).format("YYYY-MM-DD");
-    const tasks = await queryTaskByData(
+    const tasks = await queryTaskByDate(
       queryDate,
       userName,
       calendarTable,
@@ -191,5 +192,21 @@ describe("test insert and query tasks", () => {
     // const queryTask = JSON.stringify(tasks[0]);
     // console.log(`task:${queryTask}`);
     expect(tasks[0].title).toEqual("updated task title");
+  });
+
+  test("delete task", async () => {
+    const result = await deleteTask(task.id, calendarTable, pool);
+    expect(result.affectedRows).not.toEqual(0);
+  });
+
+  test("query again should be empty", async() => {
+    const queryDate = moment(createTime).format("YYYY-MM-DD");
+    const tasks = await queryTaskByDate(
+      queryDate,
+      userName,
+      calendarTable,
+      pool
+    );
+    expect(tasks.length).toBe(0);
   });
 });

@@ -206,7 +206,7 @@ export async function insertUser(
 
 export type Task = RowDataPacket & TaskItem;
 
-export async function queryTaskByData(
+export async function queryTaskByDate(
   date: string,
   userName: string,
   calendarTable = calendarTableParam,
@@ -263,5 +263,19 @@ export async function updateTask(
     return result;
   } catch (error) {
     throw error;
+  }
+}
+
+export async function deleteTask(
+  taskId: number,
+  calendarTable = calendarTableParam,
+  pool = sharePool
+) {
+  try {
+    const sql = `DELETE FROM ${calendarTable} WHERE id = ?`;
+    const [result] = await pool.query<ResultSetHeader>(sql, [taskId]);
+    return result;
+  } catch (err) {
+    throw err;
   }
 }

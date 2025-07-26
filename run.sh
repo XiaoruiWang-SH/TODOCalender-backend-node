@@ -18,8 +18,8 @@ case "$ENV" in
     ENV_FILE=env/.env.dev docker compose --project-name myapp_dev -f docker-compose.yml up --build -d;
     ;;
   prod)
-    docker compose --project-name myapp_prod -f docker-compose-prod.yml down
-    docker compose --project-name myapp_prod -f docker-compose-prod.yml --env-file .env.prod up --build -d
+    ENV_FILE=env/.env.prod APP_PORT=8080 docker compose --project-name myapp_prod -f docker-compose.yml down;
+    ENV_FILE=env/.env.prod APP_PORT=8080 docker compose --project-name myapp_prod -f docker-compose.yml up --build -d;
     ;;
 esac
 

@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { Task, TaskItem } from "../model/taskModel";
-import { formatRes } from "../utils";
+import { formatRes, log } from "../utils";
 
 const router = Router();
 
 router.use((req, res, next) => {
-  console.log("进入tasks路由");
+  log("进入tasks路由");
   next();
 });
 

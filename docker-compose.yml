@@ -3,16 +3,16 @@ services:
     build: .
     ports:
       - "${APP_PORT:-8081}:8080"
-      - "5005:5005"  # Debug port
+      - "5005:5005" # Debug port
     env_file:
       - ${ENV_FILE}
     deploy:
       resources:
         limits:
-          cpus: '0.5'  # Limit to 0.5 CPU cores
+          cpus: "0.5" # Limit to 0.5 CPU cores
           memory: 512M # Limit to 512MB RAM
         reservations:
-          cpus: '0.2'  # Reserve 0.2 CPU cores
+          cpus: "0.2" # Reserve 0.2 CPU cores
           memory: 256M # Reserve 256MB RAM
     depends_on:
       mysql:
@@ -27,16 +27,16 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'  # Limit to 0.5 CPU cores
+          cpus: "0.5" # Limit to 0.5 CPU cores
           memory: 512M # Limit to 512MB RAM
         reservations:
-          cpus: '0.2'  # Reserve 0.2 CPU cores
+          cpus: "0.2" # Reserve 0.2 CPU cores
           memory: 256M # Reserve 256MB RAM
     volumes:
       - /var/lib/mysql/dev_mysql_data:/var/lib/mysql
     networks:
       - todo-network
-    healthcheck:  # 添加健康检查
+    healthcheck: # 添加健康检查
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
       timeout: 3s
@@ -45,5 +45,3 @@ services:
 networks:
   todo-network:
     driver: bridge
-
-

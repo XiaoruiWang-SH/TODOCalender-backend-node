@@ -25,18 +25,18 @@ async function startServer() {
   const app = express();
   const host = process.env.APP_PORT ? "0.0.0.0" : "127.0.0.1";
 
-  app.use(
-    cors({
-      origin(requestOrigin, callback) {
-        if (process.env.ENV === "dev") {
-          callback(null, true);
-        } else {
-          callback(null, false);
-        }
-      },
-      credentials: true,
-    })
-  );
+  // app.use(
+  //   cors({
+  //     origin(requestOrigin, callback) {
+  //       if (process.env.ENV === "dev") {
+  //         callback(null, true);
+  //       } else {
+  //         callback(null, false);
+  //       }
+  //     },
+  //     credentials: true,
+  //   })
+  // );
   app.use(json());
   app.use(cookieParser());
 

@@ -13,12 +13,16 @@ router.use((req, res, next) => {
 });
 
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const serviceUrl =
+  process.env.ENV === "dev"
+    ? "https://dev.api.todocalendar.live"
+    : "https://api.todocalendar.live";
 const google_client_id = process.env.GOOGLE_CLIENT_ID || "GOOGLE_CLIENT_ID";
 const google_client_secret =
   process.env.GOOGLE_CLIENT_SECRET || "GOOGLE_CLIENT_SECRET";
 
 router.get("/authorize/google", (req, res, next) => {
-  const redirect_uri = "http://localhost:8081/api/oauth2/callback/google";
+  const redirect_uri = serviceUrl + "/api/oauth2/callback/google";
   const client_id = google_client_id;
   const scope = "profile email";
   const state = crypto.randomUUID(); // 用于 CSRF 防护
@@ -33,7 +37,7 @@ router.get("/authorize/google", (req, res, next) => {
 
 router.get("/callback/google", async (req, res, next) => {
   const code = req.query.code;
-  const redirect_uri = "http://localhost:8081/api/oauth2/callback/google";
+  const redirect_uri = serviceUrl + "/api/oauth2/callback/google";
   const tokenRes = await axios.post(
     "https://oauth2.googleapis.com/token",
     null,
